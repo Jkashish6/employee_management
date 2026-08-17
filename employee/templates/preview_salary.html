@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Salary • HRMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5a67d8;
+            --success: #48bb78;
+            --gray: #718096;
+            --light: #f8fafc;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h2 {
+            font-size: 1.9rem;
+            margin: 0;
+        }
+        .header .subtitle {
+            margin-top: 8px;
+            opacity: 0.95;
+            font-size: 1rem;
+        }
+        .body {
+            padding: 40px;
+        }
+        .form-group {
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+        select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            background: white;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(90,103,216,0.15);
+        }
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: #4c51bf; transform: translateY(-2px); }
+
+        .preview-box {
+            background: #f8fffe;
+            border: 2px solid #bee3f8;
+            border-radius: 20px;
+            padding: 35px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+        .preview-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .preview-header h3 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .preview-header .month {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            padding: 16px;
+            text-align: left;
+        }
+        td {
+            padding: 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:last-child td {
+            font-weight: bold;
+            font-size: 1.3rem;
+            background: #667eea;
+            color: white;
+        }
+        .actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+            padding: 18px 50px;
+            font-size: 1.2rem;
+        }
+        .btn-success:hover { background: #38a169; }
+        .btn-secondary {
+            background: #718096;
+            color: white;
+            margin-left: 15px;
+        }
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-hr { background: #e53e3e; color: white; }
+        .badge-manager { background: #d69e2e; color: white; }
+
+        @media (max-width: 768px) {
+            .body { padding: 25px; }
+            table { font-size: 1rem; }
+            .actions { flex-direction: column; }
+            .btn { margin: 10px 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h2>Preview Employee Salary</h2>
+            <div class="subtitle">
+                {% if user.role == 'HR' %}
+                    <span class="badge badge-hr">HR Access • Full View</span>
+                {% else %}
+                    <span class="badge badge-manager">Manager Access • Your Team Only</span>
+                {% endif %}
+                • {{ current_month }}
+            </div>
+        </div>
+
+        <div class="body">
+
+            <!-- Employee Selection Form -->
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="employee_id">Select Employee</label>
+                    <select name="employee_id" id="employee_id" required>
+                        <option value="">-- Choose an employee --</option>
+                        {% for emp in employees %}
+                            <option value="{{ emp.id }}"
+                                {% if selected_employee and selected_employee.id == emp.id %}selected{% endif %}>
+                                {{ emp.firstname }} {{ emp.lastname }} 
+                                {% if emp.designation %}({{ emp.designation.designation_name }}){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Preview Salary</button>
+            </form>
+
+            <!-- Salary Preview (only shown after selection) -->
+            {% if selected_employee and salary_preview %}
+            <div class="preview-box">
+                <div class="preview-header">
+                    <h3>{{ selected_employee.firstname }} {{ selected_employee.lastname }}</h3>
+                    <div class="month">{{ current_month }}</div>
+                </div>
+
+                <table>
+                    <tr>
+                        <th>Full Days Worked</th>
+                        <td>{{ salary_preview.full_days }}</td>
+                    </tr>
+                    <tr>
+                        <th>Half Days Worked</th>
+                        <td>{{ salary_preview.half_days }}</td>
+                    </tr>
+                    <tr>
+                        <th>Approved Paid Leaves</th>
+                        <td>{{ salary_preview.approved_leaves }}</td>
+                    </tr>
+                    <tr>
+                        <th>Gross Salary</th>
+                        <td>₹{{ salary_preview.gross_salary|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Tax Deduction (5%)</th>
+                        <td>₹{{ salary_preview.tax|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Net Payable Salary</th>
+                        <td>₹{{ salary_preview.net_salary|floatformat:2 }}</td>
+                    </tr>
+                </table>
+
+                <div class="actions">
+                    <a href="{% url 'employee:confirm_generate_salary' selected_employee.id %}" 
+                       class="btn btn-success">
+                       Confirm & Send Salary Slip
+                    </a>
+                    <a href="{% url 'employee:admin_dashboard' %}" 
+                       class="btn btn-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Optional: Show message if no preview yet -->
+            {% if not selected_employee and request.method == "POST" %}
+                <p style="text-align:center;color:#e74c3c;margin-top:30px;">
+                    Please select an employee to preview salary.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

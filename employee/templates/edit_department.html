@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Department</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div class="main-content" style="padding:40px;">
+            <h1 style="text-align:center;margin-bottom:30px;color:#2c3e50;">Edit Department</h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="text-align:center;margin:20px auto;padding:15px;border-radius:12px;background:'{% if message.tags == 'error' %}#ff7675{% else %}#00b894{% endif %};color:white;max-width:600px;'">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" style="max-width:600px;margin:0 auto;background:white;padding:50px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                {% csrf_token %}
+                <div style="margin-bottom:25px;">
+                    <label style="display:block;margin-bottom:8px;font-weight:bold;color:#2c3e50;">Department Name <span style="color:red;">*</span></label>
+                    <input type="text" name="name" value="{{ department.name }}" required 
+                           style="width:100%;padding:18px;border-radius:12px;border:2px solid #ddd;font-size:1.1rem;">
+                </div>
+
+                <div style="text-align:center;margin-top:40px;">
+                    <a href="{% url 'employee:admin_dashboard' %}?section=departments" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn" style="background:#e67e22;color:white;padding:18px 60px;font-size:1.2rem;">
+                        Update Department
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

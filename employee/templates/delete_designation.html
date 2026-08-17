@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Designation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            padding: 50px;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.2);
+            max-width: 550px;
+            text-align: center;
+        }
+        h2 { color: #dc3545; font-size: 2.2rem; margin: 0 0 20px 0; }
+        .designation {
+            font-size: 1.6rem;
+            color: #2d3748;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-weight: 600;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border-left: 5px solid #ffc107;
+        }
+        .btn-group {
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-cancel:hover { background: #545b62; }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Confirm Deletion</h2>
+    <p>Are you sure you want to <strong>permanently delete</strong> this designation?</p>
+
+    <div class="designation">
+        "{{ designation.designation_name }}"
+    </div>
+
+    <!-- FIXED: Use Employee.objects.filter(designation=designation) -->
+    {% with employee_count=designation.employee_set.count %}
+        {% if employee_count > 0 %}
+            <div class="warning">
+                Warning: <strong>{{ employee_count }}</strong> employee(s) are using this designation.<br><br>
+                Deleting it will remove their designation.
+            </div>
+        {% else %}
+            <p><em>No employees are assigned to this designation.</em></p>
+        {% endif %}
+    {% endwith %}
+
+    <div class="btn-group">
+        <a href="{% url 'employee:admin_dashboard' %}" class="btn btn-cancel">
+            Cancel
+        </a>
+
+        <form method="POST" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-delete">
+                Yes, Delete Permanently
+            </button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

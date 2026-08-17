@@ -1,0 +1,18 @@
+<h3>Salary Slip - {{ salary.month }} {{ salary.year }}</h3>
+<p>Dear {{ employee.name }},</p>
+<p>Your salary for the month of {{ salary.month }} {{ salary.year }} has been processed.</p>
+
+<table border="1" cellspacing="0" cellpadding="6">
+<tr><td>Full Days</td><td>{{ salary.full_days }}</td></tr>
+<tr><td>Half Days</td><td>{{ salary.half_days }}</td></tr>
+<tr><td>Absent Days</td><td>{{ salary.absent_days }}</td></tr>
+<tr><td>Approved Leaves (with pay)</td><td>{{ salary.leave_with_pay }}</td></tr>
+<tr><td>Rejected Leaves (without pay)</td><td>{{ salary.leave_without_pay }}</td></tr>
+<tr><td>Basic Pay</td><td>₹{{ salary.basic_pay }}</td></tr>
+<tr><td>Gross Salary</td><td>₹{{ salary.total_salary }}</td></tr>
+<tr><td>Tax Deduction</td><td>₹{{ salary.tax_deduction }}</td></tr>
+<tr><td><strong>Net Salary</strong></td><td><strong>₹{{ salary.net_salary }}</strong></td></tr>
+</table>
+
+<p>Thank you for your contribution to the company.</p>
+<p>Best regards,<br>HR Department</p>

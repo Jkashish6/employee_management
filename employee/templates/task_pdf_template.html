@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Report: {{ task.task_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: 'DejaVu Sans', Arial, sans-serif;
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 5px solid #667eea;
+            margin-bottom: 35px;
+        }
+        .header h1 {
+            font-size: 28pt;
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 14pt;
+            color: #7f8c8d;
+            margin: 0;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .section h2 {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16pt;
+            margin: 0 0 20px 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-row {
+            display: table-row;
+        }
+        .label-cell, .value-cell {
+            display: table-cell;
+            padding: 10px 0;
+            vertical-align: top;
+        }
+        .label-cell {
+            width: 30%;
+            font-weight: bold;
+            color: #2c3e50;
+            padding-right: 25px;
+        }
+
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+        li:before {
+            position: absolute;
+            left: -25px;
+            font-weight: bold;
+        }
+        li.completed:before {
+            content: "Checkmark";
+            color: #27ae60;
+        }
+        li:not(.completed):before {
+            content: "Circle";
+            color: #e74c3c;
+        }
+
+        .footer {
+            margin-top: 80px;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 10pt;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Task Report</h1>
+        <p><strong>{{ task.task_name }}</strong></p>
+    </div>
+
+    <!-- Employee Information -->
+    <div class="section">
+        <h2>Employee Information</h2>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="label-cell">Employee Name</div>
+                <div class="value-cell">{{ task.employee.get_full_name }}</div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Designation</div>
+                <div class="value-cell">{{ task.employee.designation.designation_name|default:"Not Assigned" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Base Salary</div>
+                <div class="value-cell">₹{{ task.employee.designation.base_salary|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Details -->
+    <div class="section">
+        <h2>Task Details</h2>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="label-cell">Task Name</div>
+                <div class="value-cell"><strong>{{ task.task_name }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Description</div>
+                <div class="value-cell">{{ task.task_desc|linebreaksbr }}</div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Status</div>
+                <div class="value-cell"><strong>{{ task.status }}</strong></div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Progress</div>
+                <div class="value-cell">
+                    <strong style="font-size: 14pt; color: #667eea;">{{ task.progress }}% Completed</strong><br><br>
+                    <!-- SVG Progress Bar – 100% PDF Safe -->
+                    <svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none">
+                        <rect x="0" y="0" width="100" height="24" fill="#f0f0f0" rx="12" ry="12"/>
+                        <rect x="0" y="0" width="{{ task.progress|floatformat:0 }}" height="24" fill="url(#gradient)" rx="12" ry="12"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Start Date</div>
+                <div class="value-cell">{{ task.start_date|date:"d F Y" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="label-cell">Due Date</div>
+                <div class="value-cell">{{ task.due_date|date:"d F Y" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subtasks -->
+    <div class="section">
+        <h2>Subtasks ({{ task.subtasks.count }})</h2>
+        {% if task.subtasks.all %}
+            <ul>
+                {% for subtask in task.subtasks.all %}
+                    <li class="{% if subtask.completed %}completed{% endif %}">
+                        {{ subtask.name }}
+                        {% if subtask.completed %}
+                            <em style="color:#27ae60; font-weight:600;"> (Completed)</em>
+                        {% else %}
+                            <em style="color:#e74c3c; font-weight:600;"> (Pending)</em>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No subtasks assigned to this task.</p>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        Report generated on {{ "now"|date:"d F Y \a\t h:i A" }} | HRMS Task Management System
+    </div>
+
+</div>
+
+</body>
+</html>

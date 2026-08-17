@@ -1,0 +1,396 @@
+{% load static dashboard_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - {{ designation_name|default:"Employee" }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        /* Welcome Section */
+        .welcome-box {
+            background: white;
+            border-radius: 24px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+            margin-bottom: 40px;
+        }
+        .welcome-box h1 {
+            font-size: 3.5rem;
+            color: #2d3748;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+        }
+        .welcome-box p {
+            font-size: 1.5rem;
+            color: #718096;
+            margin: 0 0 20px 0;
+        }
+        .today-date {
+            font-size: 1.3rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        .stat-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+        }
+        .stat-card i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+        .pending i { color: #f39c12; }
+        .progress i { color: #3498db; }
+        .completed i { color: #27ae60; }
+        .leave i { color: #e74c3c; }
+        .stat-card h3 {
+            font-size: 4rem;
+            margin: 15px 0 10px 0;
+            font-weight: 700;
+        }
+        .stat-card p {
+            color: #718096;
+            font-size: 1.3rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+        }
+        .action-card {
+            background: white;
+            padding: 50px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .action-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+        }
+        .action-card i {
+            font-size: 4rem;
+            margin-bottom: 25px;
+        }
+        .action-tasks i { color: #3498db; }
+        .action-leave i { color: #e74c3c; }
+        .action-attendance i { color: #2ecc71; }
+        .action-salary i { color: #9c27b0; }
+        .action-card h3 {
+            font-size: 1.6rem;
+            margin: 0 0 15px 0;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        .action-card p {
+            color: #718096;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        /* Feedback Section */
+        .feedback-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 50px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .feedback-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+        }
+        .feedback-item small {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .feedback-item strong {
+            color: #667eea;
+        }
+
+        .section { margin-top: 60px; }
+    </style>
+</head>
+<body style="overflow-x:hidden;">
+
+  <!-- ONLY SHOW DASHBOARD IF USER IS EMPLOYEE -->
+  {% if user.is_authenticated and user.role == "EMPLOYEE" %}
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>
+                Hello, {{ request.user.get_full_name|default:request.user.username }}
+                <small style="display:block; font-size:0.9rem; color:#aaa;">
+                    {{ designation_name }}
+                </small>
+            </h2>
+            <a href="#" onclick="showSection('dashboard')" class="active">Dashboard</a>
+            <a href="{% url 'employee:holiday_calendar' %}">Holiday Calendar</a>
+            <a href="#" onclick="showSection('tasks')">My Tasks</a>
+            <a href="#" onclick="showSection('attendance')">Attendance</a>
+            <a href="#" onclick="showSection('leaves')">My Leaves</a>
+            <a href="#" onclick="showSection('salary')">Salary</a>
+            <a href="#" onclick="showSection('feedback')">Feedback</a>
+            <a href="{% url 'employee:leave_request' %}" class="button">Request Leave</a>
+            <a href="{% url 'employee:logout' %}">Logout</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Dashboard -->
+            <div id="dashboard-section" class="section">
+                <div class="welcome-box">
+                    <h1>Welcome back, {{ request.user.first_name|default:request.user.username }}!</h1>
+                    <p>Here's your overview for today</p>
+                    <div class="today-date">
+                        {{ "now"|date:"l, d F Y" }}
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card pending">
+                        <i class="fas fa-clock"></i>
+                        <h3>{{ task_status_data.Pending|default:0 }}</h3>
+                        <p>Pending Tasks</p>
+                    </div>
+                    <div class="stat-card progress">
+                        <i class="fas fa-sync-alt"></i>
+                        <h3>{{ task_status_data.In_Progress|default:0 }}</h3>
+                        <p>In Progress</p>
+                    </div>
+                    <div class="stat-card completed">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>{{ task_status_data.Completed|default:0 }}</h3>
+                        <p>Completed Tasks</p>
+                    </div>
+                    <div class="stat-card leave">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>{{ leave_balance.remaining|default:30 }}</h3>
+                        <p>Leave Balance</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="#" onclick="showSection('tasks')" class="action-card action-tasks">
+                        <i class="fas fa-tasks"></i>
+                        <h3>My Tasks</h3>
+                        <p>View and update your assigned tasks</p>
+                    </a>
+                    <a href="{% url 'employee:leave_request' %}" class="action-card action-leave">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Request Leave</h3>
+                        <p>Apply for casual or duty leave</p>
+                    </a>
+                    <a href="#" onclick="showSection('attendance')" class="action-card action-attendance">
+                        <i class="fas fa-clock"></i>
+                        <h3>Attendance</h3>
+                        <p>Check your daily attendance record</p>
+                    </a>
+                    <a href="#" onclick="showSection('salary')" class="action-card action-salary">
+                        <i class="fas fa-rupee-sign"></i>
+                        <h3>Salary Slips</h3>
+                        <p>View your monthly salary details</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- My Tasks -->
+            <div id="tasks-section" class="section" style="display:none;">
+                <h2>My Assigned Tasks</h2>
+                {% if tasks %}
+                    {% for task in tasks %}
+                        <div class="card" style="margin-bottom:15px; padding:15px; position:relative;">
+                            <strong>{{ task.task_name }}</strong>
+                            <span style="position: absolute;top: 15px;right: 15px;padding: 4px 10px;border-radius: 20px;color: white;font-size: 0.8rem;background-color:{% if task.status == 'Completed' %}#28a745{% elif task.status == 'In Progress' %}#007bff{% else %}#dc3545{% endif %};">
+                                {{ task.get_status_display|default:task.status }} ({{ task.progress }}%)
+                            </span>
+                            <br>
+                            <small style="color:#666; display:block; margin:8px 0;">
+                                {{ task.task_desc|truncatewords:20 }}
+                            </small>
+                            <strong>Due Date:</strong>
+                            {% if task.status != 'Completed' and task.due_date|date:'U' < today_date|date:'U' %}
+
+                                <span style="color:#dc3545;">
+                                    {{ task.due_date|date:'d M Y' }}
+                                    <strong style="color:#dc3545;"> (Overdue!)</strong>
+                                </span>
+                            {% else %}
+                                <span style="color:#333;">
+                                    {{ task.due_date|date:"d M Y" }}
+                                </span>
+                            {% endif %}
+                            <div style="margin-top:12px; text-align:right;">
+                                <a href="{% url 'employee:update_employee_task' task.id %}" 
+                                   class="action-btn edit-btn"
+                                   style="font-size:0.9rem; padding:6px 14px; text-decoration:none;">
+                                    Update Progress
+                                </a>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>No tasks assigned yet. Enjoy your free time!</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No tasks assigned.</p>
+                {% endif %}
+            </div>
+
+            <!-- Attendance -->
+            <div id="attendance-section" class="section" style="display:none;">
+                <h2>My Attendance</h2>
+                <div class="attendance-buttons">
+                    <button type="button" class="btn active" onclick="showAttendance('daily')">Daily</button>
+                    <button type="button" class="btn" onclick="showAttendance('monthly')">Monthly</button>
+                    <button type="button" class="btn" onclick="showAttendance('yearly')">Yearly</button>
+                </div>
+                <div id="attendance-content" style="margin-top:20px;"></div>
+            </div>
+
+            <!-- My Leaves -->
+            <div id="leaves-section" class="section" style="display:none;">
+                <h2>My Leave History</h2>
+                {% if leaves %}
+                    {% for leave in leaves %}
+                        <div class="card">
+                            <strong>{{ leave.start_date }} to {{ leave.end_date }}</strong>
+                            <span style="float:right; color:{% if leave.status == 'Approved' %}#28a745{% elif leave.status == 'Rejected' %}#dc3545{% else %}#ffc107{% endif %};">
+                                {{ leave.get_status_display }}
+                            </span>
+                            <br>
+                            <strong>Type:</strong> {{ leave.get_leave_type_display }}<br>
+                            <strong>Reason:</strong> {{ leave.reason|truncatewords:15 }}<br>
+                            {% if leave.status == 'Approved' and leave.approved_start_date %}
+                                <small style="color:#28a745;">
+                                    Approved: {{ leave.approved_start_date }} to {{ leave.approved_end_date }}
+                                </small><br>
+                            {% endif %}
+                            {% if leave.includes_weekend %}
+                                <small style="color:#dc3545;">Includes {{ leave.weekend_days }} weekend day(s)</small>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <p>No leave requests made yet.</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No leave history.</p>
+                {% endif %}
+            </div>
+
+            <!-- Salary -->
+            <div id="salary-section" class="section" style="display:none;">
+                <h2>My Salary Slips</h2>
+                {% if salaries %}
+                    {% for sal in salaries %}
+                        <div class="card">
+                            <strong>{{ sal.get_month_display }} {{ sal.year }}</strong>
+                            <span style="float:right;">Generated: {{ sal.generated_at|date:"d M Y" }}</span><br>
+                            <hr style="margin:10px 0;">
+                            <p><strong>Basic Salary:</strong> ₹{{ sal.basic_salary|floatformat:2 }}</p>
+                            <p><strong>Days Worked:</strong> {{ sal.days_worked }} days</p>
+                            <p><strong>TDS Deduction:</strong> ₹{{ sal.tds|floatformat:2 }}</p>
+                            <p><strong>Professional Tax:</strong> ₹{{ sal.professional_tax|floatformat:2 }}</p>
+                            <hr style="margin:10px 0;">
+                            <h3 style="color:#28a745; margin:0;">Net Pay: ₹{{ sal.final_salary|floatformat:2 }}</h3>
+                        </div>
+                    {% empty %}
+                        <p>No salary generated yet.</p>
+                    {% endfor %}
+                {% else %}
+                    <p>No salary records available.</p>
+                {% endif %}
+            </div>
+
+            <!-- FEEDBACK FROM HR/MANAGER -->
+            <div id="feedback-section" class="section" style="display:none;">
+                <h2>Feedback from Manager/HR</h2>
+                {% if feedbacks %}
+                    {% for fb in feedbacks %}
+                    <div class="feedback-item">
+                        <small><strong>{{ fb.given_by.get_full_name }}</strong> • {{ fb.given_at|date:"d M Y" }}</small><br>
+                        <strong>Rating: {{ fb.get_rating_display }}</strong><br>
+                        <p style="margin:10px 0 0 0; line-height:1.6;">{{ fb.feedback_text }}</p>
+                    </div>
+                    {% empty %}
+                    <p style="color:#999; font-style:italic; text-align:center; padding:50px;">No feedback received yet.</p>
+                    {% endfor %}
+                {% else %}
+                    <p style="color:#999; font-style:italic; text-align:center; padding:50px;">No feedback received yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(id + '-section').style.display = 'block';
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`a[onclick="showSection('${id}')"]`)?.classList.add('active');
+        }
+
+        function showAttendance(period) {
+            document.getElementById('attendance-content').innerHTML = '<p>No detailed attendance data available.</p>';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('dashboard');
+        });
+    </script>
+
+  {% else %}
+      <!-- BLOCK NON-EMPLOYEES -->
+      <div style="text-align:center; padding:150px 20px; background:#ffebee; color:#c62828; min-height:100vh; font-family:Arial;">
+          <h2>Access Denied</h2>
+          <p>Only regular employees can access this dashboard.</p>
+          <a href="{% url 'employee:login' %}" style="padding:15px 40px; background:#667eea; color:white; border-radius:50px; text-decoration:none; margin-top:20px; display:inline-block; font-size:1.1rem;">
+              Back to Login
+          </a>
+      </div>
+  {% endif %}
+
+</body>
+</html>

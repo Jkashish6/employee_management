@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Preview - {{ employee.firstname }} {{ employee.lastname }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .info-item {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+        }
+        .info-item strong {
+            color: #2c3e50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 15px;
+        }
+        table th, table td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        table tr:last-child td {
+            border-bottom: 3px double #3498db;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .summary {
+            text-align: right;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        .btn-back {
+            background-color: #95a5a6;
+        }
+        .btn-back:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-confirm {
+            background-color: #27ae60;
+        }
+        .btn-confirm:hover {
+            background-color: #219653;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-hr { background: #e74c3c; }
+        .badge-manager { background: #f39c12; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Salary Preview</h2>
+    <p class="subtitle">
+        {{ employee.firstname }} {{ employee.lastname }}
+        {% if user.role == 'HR' %}
+            <span class="badge badge-hr">HR Preview</span>
+        {% elif user.role == 'MANAGER' %}
+            <span class="badge badge-manager">Manager Preview</span>
+        {% endif %}
+    </p>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <strong>Employee ID:</strong> {{ employee.id }}
+        </div>
+        <div class="info-item">
+            <strong>Designation:</strong> {{ employee.designation.designation_name|default:"Not Assigned" }}
+        </div>
+        <div class="info-item">
+            <strong>Month & Year:</strong> {{ current_month }}
+        </div>
+        <div class="info-item">
+            <strong>Base Salary:</strong> ₹{{ employee.designation.base_salary|floatformat:2 }}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Days / Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Full Days Worked</td><td>{{ full_days }}</td></tr>
+            <tr><td>Half Days Worked</td><td>{{ half_days }}</td></tr>
+            <tr><td>Approved Paid Leaves</td><td>{{ approved_leaves }}</td></tr>
+            <tr><td><strong>Gross Salary</strong></td><td><strong>₹{{ gross_salary|floatformat:2 }}</strong></td></tr>
+            <tr><td>Tax Deduction (5%)</td><td>₹{{ tax|floatformat:2 }}</td></tr>
+            <tr>
+                <td><strong>Net Payable Salary</strong></td>
+                <td><strong>₹{{ net_salary|floatformat:2 }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <a href="{% url 'employee:preview_salary' %}" class="btn btn-back">← Back to List</a>
+        <a href="{% url 'employee:confirm_generate_salary' employee.id %}" class="btn btn-confirm">
+            Confirm & Send Salary Slip
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

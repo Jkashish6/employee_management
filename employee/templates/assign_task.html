@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Task</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+</head>
+<body>
+    <div class="form-wrapper">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Assign New Task</h2>
+            </div>
+
+            <div class="form-body">
+
+                <!-- Security: Only HR and Managers can assign tasks -->
+                {% if not user.is_authenticated or not user.is_staff_member %}
+                    <div class="error" style="text-align:center; padding:50px; font-size:1.3rem;">
+                        <p>Access Denied</p>
+                        <p>You do not have permission to assign tasks.</p>
+                        <a href="{% url 'employee:admin_dashboard' %}" class="form-btn" style="margin-top:20px; display:inline-block;">
+                            Back to Dashboard
+                        </a>
+                    </div>
+
+                {% else %}
+                    <!-- Show success/error messages -->
+                    {% if messages %}
+                        <div class="form-messages">
+                            {% for message in messages %}
+                                <div class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label>Task Name</label>
+                            <input type="text" name="task_name" placeholder="e.g. Develop Login Module" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Assign to Employee</label>
+                            <select name="employee" required>
+                                <option value="">-- Select Employee --</option>
+
+                                {% for emp in employees %}
+                                    <option value="{{ emp.id }}">
+                                        {{ emp.firstname }} {{ emp.lastname }}
+                                        {% if emp.designation %}({{ emp.designation.designation_name }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea name="task_desc" rows="5" placeholder="Provide detailed task description..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" name="start_date" value="{{ today_date }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" name="due_date" min="{{ today_date }}" required>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div style="text-align:center; margin-top:30px;">
+                            
+                            <a href="{% url 'employee:admin_dashboard' %}" 
+                               class="form-btn" 
+                               style="background:#95a5a6; margin-right:15px; text-decoration:none;">
+                                Cancel
+                            </a>
+                            
+                            <button type="submit" class="form-btn">
+                                Assign Task
+                            </button>
+                        </div>
+                    </form>
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

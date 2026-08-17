@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preview Salary</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 30px; background: #f7f7f7; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        form { text-align: center; margin-bottom: 30px; }
+        table { width: 60%; margin: 0 auto; border-collapse: collapse; background: white; box-shadow: 0 0 10px #ccc; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #007bff; color: white; }
+        .summary { text-align: center; margin-top: 20px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; text-decoration: none; color: white; background: #007bff; }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h2>Preview Employee Salary</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <label for="employee">Select Employee:</label>
+        <select name="employee_id" id="employee" required>
+            <option value="">-- Select --</option>
+            {% for e in employees %}
+                <option value="{{ e.id }}" {% if selected_employee and selected_employee.id == e.id %}selected{% endif %}>{{ e.firstname }} {{ e.lastname }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">Preview</button>
+    </form>
+
+    {% if selected_employee %}
+    <table>
+        <tr><th colspan="2">Salary Summary for {{ selected_employee.firstname }} {{ selected_employee.lastname }}</th></tr>
+        <tr><td>Full Days</td><td>{{ full_days }}</td></tr>
+        <tr><td>Half Days</td><td>{{ half_days }}</td></tr>
+        <tr><td>Absent Days</td><td>{{ absent_days }}</td></tr>
+        <tr><td>Approved Leaves (with pay)</td><td>{{ approved_leaves }}</td></tr>
+        <tr><td>Rejected Leaves (without pay)</td><td>{{ rejected_leaves }}</td></tr>
+        <tr><td><strong>Gross Salary</strong></td><td>₹{{ gross_salary }}</td></tr>
+        <tr><td>Tax (5%)</td><td>₹{{ tax }}</td></tr>
+        <tr><td><strong>Net Salary</strong></td><td><strong>₹{{ net_salary }}</strong></td></tr>
+    </table>
+
+    <div class="summary">
+        <a href="{% url 'employee:confirm_generate_salary' selected_employee.id %}" class="btn">Confirm & Generate Salary</a>
+    </div>
+    {% endif %}
+</body>
+</html>

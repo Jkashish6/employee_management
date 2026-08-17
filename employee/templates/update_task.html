@@ -1,0 +1,274 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task • {{ task.task_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+            --light: #f8f9fa;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 35px;
+            text-align: center;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        .header .subtitle {
+            margin-top: 10px;
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+        .body {
+            padding: 40px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+        .subtask-section {
+            background: #f8fffe;
+            border: 2px solid #bee3f8;
+            border-radius: 14px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        .subtask-item input[type="checkbox"] {
+            margin-right: 14px;
+            transform: scale(1.4);
+            cursor: pointer;
+        }
+        .subtask-item label {
+            margin: 0;
+            cursor: pointer;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 40px;
+        }
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-3px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .messages {
+            margin-bottom: 24px;
+        }
+        .msg {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .msg.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .msg.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .container { margin: 15px; }
+            .header, .body { padding: 25px; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h2>Edit Task</h2>
+            <div class="subtitle">Update task details and progress</div>
+        </div>
+
+        <div class="body">
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="msg {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'employee:update_task' task.id %}">
+                {% csrf_token %}
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="task_name">Task Name</label>
+                        <input type="text" name="task_name" id="task_name" value="{{ task.task_name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="progress">Progress (%)</label>
+                        <input type="number" name="progress" id="progress" value="{{ task.progress }}" min="0" max="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ task.start_date|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="due_date">Due Date</label>
+                        <input type="date" name="due_date" id="due_date" value="{{ task.due_date|date:'Y-m-d' }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select name="status" id="status" required>
+                            <option value="Pending" {% if task.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="task_desc">Description</label>
+                        <textarea name="task_desc" id="task_desc" required>{{ task.task_desc }}</textarea>
+                    </div>
+
+                </div>
+
+                <!-- Subtasks Section -->
+                <div class="subtask-section">
+                    <label style="font-size:1.2rem; color:#2c3e50; margin-bottom:16px; display:block;">
+                        Subtasks ({{ task.subtasks.count }})
+                    </label>
+                    {% if task.subtasks.all %}
+                        {% for subtask in task.subtasks.all %}
+                            <div class="subtask-item">
+                                <input type="checkbox"
+                                       name="subtask_{{ subtask.id }}"
+                                       id="subtask_{{ subtask.id }}"
+                                       {% if subtask.completed %}checked{% endif %}>
+                                <label for="subtask_{{ subtask.id }}">
+                                    {{ subtask.name }}
+                                    {% if subtask.completed %}
+                                        <em style="color:#27ae60; margin-left:8px;">(Completed)</em>
+                                    {% else %}
+                                        <em style="color:#e74c3c; margin-left:8px;">(Pending)</em>
+                                    {% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:#95a5a6; font-style:italic; margin:10px 0;">
+                            No subtasks assigned to this task.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">
+                        Update Task
+                    </button>
+                    <a href="{% url 'employee:admin_dashboard' %}" class="btn btn-secondary">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

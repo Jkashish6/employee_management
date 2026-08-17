@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partial Leave Approval</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            max-width: 620px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 28px;
+            text-align: center;
+        }
+        .header h2 {
+            font-size: 1.7rem;
+            margin: 0;
+        }
+        .header .role {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-top: 6px;
+        }
+        .body {
+            padding: 35px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+        .info-item {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        .info-item strong {
+            color: #2c3e50;
+        }
+        .reason-box {
+            background: #fff8e1;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid #ffeaa7;
+            margin: 20px 0;
+            font-style: italic;
+            color: #d35400;
+        }
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-approve {
+            background: var(--success);
+            color: white;
+        }
+        .btn-approve:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+        .btn-cancel {
+            background: var(--gray);
+            color: white;
+        }
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 576px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>Partial Leave Approval</h2>
+        <div class="role">
+            {% if user.role == 'HR' %}
+                HR Approval Mode
+            {% else %}
+                Manager Approval • {{ user.get_full_name }}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="body">
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Employee</strong><br>
+                {{ leave.employee.firstname }} {{ leave.employee.lastname }}
+            </div>
+            <div class="info-item">
+                <strong>Designation</strong><br>
+                {{ leave.employee.designation.designation_name|default:"N/A" }}
+            </div>
+            <div class="info-item">
+                <strong>Requested Dates</strong><br>
+                {{ leave.start_date|date:"d M Y" }} → {{ leave.end_date|date:"d M Y" }}
+            </div>
+            <div class="info-item">
+                <strong>Leave Type</strong><br>
+                {{ leave.get_leave_type_display }}
+            </div>
+        </div>
+
+        <div class="reason-box">
+            <strong>Reason:</strong><br>
+            {{ leave.reason }}
+        </div>
+
+        <form method="POST" action="{% url 'employee:partial_approve_leave' leave.id %}">
+            {% csrf_token %}
+
+            <label for="approved_start_date">
+                Approve From Date 
+                <small>(Original: {{ leave.start_date|date:"d M Y" }})</small>
+            </label>
+            <input type="date"
+                   name="approved_start_date"
+                   id="approved_start_date"
+                   value="{{ leave.start_date|date:'Y-m-d' }}"
+                   min="{{ leave.start_date|date:'Y-m-d' }}"
+                   max="{{ leave.end_date|date:'Y-m-d' }}"
+                   required>
+
+            <label for="approved_end_date">
+                Approve To Date 
+                <small>(Original: {{ leave.end_date|date:"d M Y" }})</small>
+            </label>
+            <input type="date"
+                   name="approved_end_date"
+                   id="approved_end_date"
+                   value="{{ leave.end_date|date:'Y-m-d' }}"
+                   min="{{ leave.start_date|date:'Y-m-d' }}"
+                   max="{{ leave.end_date|date:'Y-m-d' }}"
+                   required>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-approve">
+                    Confirm Partial Approval
+                </button>
+                <a href="{% url 'employee:admin_dashboard' %}" class="btn btn-cancel">
+                    Cancel
+                </a>
+            </div>
+        </form>
+
+        <a href="{% url 'employee:admin_dashboard' %}" class="back-link">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

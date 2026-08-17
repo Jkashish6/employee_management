@@ -1,0 +1,641 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    <style>
+        body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        min-height: 100vh;
+        transition: all 0.5s ease;
+    }
+    
+   
+        .team-overview { margin: 70px 0; background: rgba(255,255,255,0.08); padding: 45px; border-radius: 25px; backdrop-filter: blur(12px); box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .managers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 60px; }
+        .manager-card { background: white; padding: 35px; border-radius: 22px; box-shadow: 0 15px 45px rgba(0,0,0,0.18); text-align: center; transition: all 0.4s ease; cursor: pointer; }
+        .manager-card:hover { transform: translateY(-15px); box-shadow: 0 30px 70px rgba(102,126,234,0.3); }
+        .manager-card.active { border: 4px solid #667eea; box-shadow: 0 20px 50px rgba(102,126,234,0.4); }
+        .manager-card h3 { color: #667eea; font-size: 1.9rem; margin: 0 0 10px 0; }
+        .team-count { font-size: 4.5rem; font-weight: 800; color: #667eea; margin: 20px 0; }
+        .team-list { margin-top: 40px; display: none; }
+        .team-list.active { display: block; animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .emp-card { background: white; margin: 25px 0; padding: 30px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-left: 7px solid #667eea; }
+        .emp-card h4 { margin: 0 0 12px; color: #2d3748; font-size: 1.8rem; }
+        .perf { margin: 20px 0; font-weight: 600; font-size: 1.1rem; }
+        .fb-form { background: #f8f9fa; padding: 25px; border-radius: 16px; margin: 25px 0; }
+        .fb-form textarea { width: 100%; padding: 16px; border-radius: 12px; border: 2px solid #e2e8f0; margin: 12px 0; font-size: 1rem; }
+        .fb-form button { background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 14px 35px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+        .feedback-item { background: #f0f7ff; padding: 18px; border-radius: 14px; margin: 12px 0; border-left: 5px solid #667eea; }
+        .role-badge { padding:8px 16px; border-radius:12px; color:white; font-weight:bold; font-size:0.9rem; display:inline-block; }
+        .role-manager { background:#e74c3c; }
+        .role-employee { background:#3498db; }/* === PROFESSIONAL DARK MODE === */
+
+/* === DARK MODE — ONLY CHANGES WHEN SWITCHED ON === */
+    body[data-theme="dark"] {
+        background: linear-gradient(135deg, #0a001f 0%, #1a0033 100%) !important;
+    }
+
+    body[data-theme="dark"] .team-overview,
+    body[data-theme="dark"] .manager-card,
+    body[data-theme="dark"] .emp-card,
+    body[data-theme="dark"] .fb-form,
+    body[data-theme="dark"] .feedback-item,
+    body[data-theme="dark"] .summary-card,
+    body[data-theme="dark"] .data-table,
+    body[data-theme="dark"] .sidebar,
+    body[data-theme="dark"] .main-content {
+        background: rgba(40, 20, 90, 0.95) !important;
+        color: #e8d4ff !important;
+        border: 1px solid rgba(140, 100, 255, 0.4) !important;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important;
+    }
+
+    body[data-theme="dark"] h1,
+    body[data-theme="dark"] h2,
+    body[data-theme="dark"] h3,
+    body[data-theme="dark"] h4,
+    body[data-theme="dark"] .summary-card p,
+    body[data-theme="dark"] .manager-card h3,
+    body[data-theme="dark"] .team-count {
+        color: white !important;
+    }
+
+    body[data-theme="dark"] input,
+    body[data-theme="dark"] textarea,
+    body[data-theme="dark"] select {
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(150,100,255,0.6) !important;
+        color: white !important;
+    }
+
+    /* === FINAL SWITCH — LOOKS PERFECT IN BOTH MODES === */
+.switch-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: rgba(255,255,255,0.25);
+    padding: 10px 18px;
+    border-radius: 50px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    transition: all 0.4s ease;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 30px;
+}
+
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(102, 126, 234, 0.4) !important;
+    transition: .4s;
+    border-radius: 34px;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background: #667eea;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+input:checked + .slider {
+    background: linear-gradient(45deg, #667eea, #764ba2) !important;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Optional: Make text slightly purple in light mode */
+.switch-container span {
+    color: #764ba2(163, 89, 89);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+</style>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar — FIXED: Now all links work properly -->
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <a href="?section=dashboard" onclick="showSection('dashboard')">Dashboard</a>
+            <a href="{% url 'employee:holiday_calendar' %}">Holiday Calendar</a>
+            <a href="?section=employees" onclick="showSection('employees')">Manage Employees</a>
+            <a href="?section=departments" onclick="showSection('departments')">Manage Departments</a>
+            <a href="?section=designations" onclick="showSection('designations')">Manage Designations</a>
+            <a href="?section=tasks" onclick="showSection('tasks')">Manage Tasks</a>
+            <a href="?section=leaves" onclick="showSection('leaves')">Leave Requests</a>
+            <a href="{% url 'employee:preview_salary' %}">Preview Salary</a>
+            <a href="{% url 'employee:logout' %}">Logout</a>
+        </div>
+
+        <div class="main-content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section">
+                <h1>Dashboard</h1>
+
+                <!-- Regular Dashboard Cards -->
+                <div class="summary-grid">
+                    <div class="summary-card card-blue"><h3>Total Employees</h3><p>{{ total_employees }}</p></div>
+                    <div class="summary-card card-green"><h3>Total Departments</h3><p>{{ total_departments }}</p></div>
+                    <div class="summary-card card-orange"><h3>Total Designations</h3><p>{{ total_designations }}</p></div>
+                    <div class="summary-card card-purple"><h3>Total Leave Requests</h3><p>{{ total_leave_requests }}</p></div>
+                    <div class="summary-card card-red"><h3>Total Tasks</h3><p>{{ total_tasks }}</p></div>
+                </div>
+
+                <!-- TEAM PERFORMANCE OVERVIEW -->
+                {% if is_hr %}
+                <div class="team-overview">
+                    <h2 style="text-align:center; font-size:2.6rem; color:#2c3e50; margin-bottom:50px; font-weight:700;">
+                        Manager Teams Overview
+                    </h2>
+
+                    <div class="managers-grid">
+                        {% for manager in managers_with_teams %}
+                        <div class="manager-card" onclick="showTeam({{ manager.id }})" id="mgr-{{ manager.id }}">
+                            <h3 style="color:#667eea; font-size:1.9rem; margin:0 0 10px 0;">
+                                {{ manager.get_full_name }}
+                            </h3>
+                            <p style="color:#7f8c8d; font-size:1.1rem; margin:10px 0;">
+                                {{ manager.employee_profile.designation.designation_name }} • {{ manager.employee_profile.department.name }}
+                            </p>
+                            <div class="team-count" style="font-size:4.5rem; color:#667eea; margin:20px 0;">
+                                {{ manager.team_count }}
+                            </div>
+                            <p style="font-size:1.3rem; color:#2c3e50; margin:15px 0;">Team Members</p>
+                        </div>
+                        {% empty %}
+                        <div style="grid-column:1/-1; text-align:center; padding:60px; background:white; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                            <p style="color:#e74c3c; font-size:1.8rem; margin:0;">
+                                No Managers Found
+                            </p>
+                            <p style="color:#7f8c8d; margin-top:15px;">
+                                Create employees with "Manager" designation to see them here.
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+
+                    <!-- TEAM DISPLAY AREA -->
+                    <div id="team-display" style="background:white; border-radius:20px; padding:40px; box-shadow:0 10px 30px rgba(0,0,0,0.1); min-height:200px;">
+                        <p style="text-align:center; color:#7f8c8d; font-size:1.4rem; margin:0;">
+                            Click on any manager above to view their team and give feedback
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- EMPLOYEES SECTION -->
+            <div id="employees-section" style="display:none;">
+                <h1>Employees</h1>
+                <div style="margin-bottom:20px;">
+                    <a href="{% url 'employee:add_employee' %}" class="btn">+ Add Employee</a>
+                    <a href="?section=employees&export=excel" class="btn" style="background:#27ae60;color:white;margin-left:15px;">
+                        Export to Excel
+                    </a>
+                </div>
+
+                <div style="margin:30px 0;">
+                    <input type="text" id="employeeSearch" placeholder="Search by name, email, phone..." 
+                           style="padding:15px;width:70%;border-radius:16px;border:2px solid #ddd;font-size:1.1rem;">
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Designation</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Join Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in employees %}
+                        <tr>
+                            <td><strong>{{ emp.firstname }} {{ emp.lastname }}</strong></td>
+                            <td>
+                                <span class="role-badge {% if emp.user.role == 'MANAGER' %}role-manager{% else %}role-employee{% endif %}">
+                                    {{ emp.user.role|capfirst }}
+                                </span>
+                            </td>
+                            <td>{{ emp.department.name|default:"—" }}</td>
+                            <td>{{ emp.designation.designation_name|default:"—" }}</td>
+                            <td>{{ emp.email }}</td>
+                            <td>{{ emp.phone }}</td>
+                            <td>{{ emp.join_date|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'employee:edit_employee' emp.id %}" class="action-btn edit-btn">Edit</a>
+                                <a href="{% url 'employee:delete_employee' emp.id %}" class="action-btn delete-btn" 
+                                   onclick="return confirm('Delete {{ emp.firstname }}?')">Delete</a>
+                                <a href="{% url 'employee:attendance_report' emp.id %}" class="action-btn view-btn">Attendance</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" style="text-align:center;padding:60px;color:#999;">No employees found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- FIXED PAGINATION -->
+                {% if employees.has_other_pages %}
+                <div style="text-align:center; margin-top:30px;">
+                    {% if employees.has_previous %}
+                        <a href="?section=employees&emp_page={{ employees.previous_page_number }}" 
+                           style="background:#667eea;color:white;padding:12px 20px;border-radius:8px;margin:0 10px;text-decoration:none;">
+                            Previous
+                        </a>
+                    {% endif %}
+                    <span style="font-size:1.1rem; color:white; background:#667eea; padding:10px 20px; border-radius:8px;">
+                        Page {{ employees.number }} of {{ employees.paginator.num_pages }}
+                    </span>
+                    {% if employees.has_next %}
+                        <a href="?section=employees&emp_page={{ employees.next_page_number }}" 
+                           style="background:#667eea;color:white;padding:12px 20px;border-radius:8px;margin:0 10px;text-decoration:none;">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- DEPARTMENTS SECTION -->
+            <div id="departments-section" style="display:none;">
+                <h1>Manage Departments</h1>
+                <a href="{% url 'employee:add_department' %}" class="btn">+ Add New Department</a>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Department Name</th>
+                            <th>Total Employees</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>{{ dept.name }}</strong></td>
+                            <td>{{ dept.employee_set.count }}</td>
+                            <td>
+                                <a href="{% url 'employee:edit_department' dept.id %}" class="action-btn edit-btn">Edit</a>
+                                <a href="{% url 'employee:delete_department' dept.id %}" class="action-btn delete-btn" onclick="return confirm('Delete {{ dept.name }}?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align:center;padding:60px;color:#999;">No departments yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DESIGNATIONS SECTION -->
+            <div id="designations-section" style="display:none;">
+                <h1>Manage Designations</h1>
+                <a href="{% url 'employee:add_designation' %}" class="btn">+ Add New Designation</a>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Department</th>
+                            <th>Designation Name</th>
+                            <th>Role</th>
+                            <th>Base Salary</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for des in designations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>{{ des.department.name }}</strong></td>
+                            <td>{{ des.designation_name }}</td>
+                            <td>
+                                <span style="padding:8px 16px;border-radius:12px;color:white;font-weight:bold;background:{% if des.is_managerial %}#e74c3c{% else %}#3498db{% endif %}">
+                                    {% if des.is_managerial %}Manager{% else %}Employee{% endif %}
+                                </span>
+                            </td>
+                            <td>₹{{ des.base_salary|floatformat:0 }}</td>
+                            <td>
+                                <a href="{% url 'employee:edit_designation' des.id %}" class="action-btn edit-btn">Edit</a>
+                                <a href="{% url 'employee:delete_designation' des.id %}" class="action-btn delete-btn" onclick="return confirm('Delete {{ des.designation_name }}?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" style="text-align:center;padding:60px;color:#999;">No designations yet</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TASKS SECTION -->
+            <div id="tasks-section" style="display:none;">
+                <h1>All Tasks</h1>
+                <div style="margin-bottom:20px; display:flex; gap:15px; flex-wrap:wrap;">
+                    <a href="{% url 'employee:assign_task' %}" class="btn">+ Assign New Task</a>
+                    <a href="?section=tasks&export=excel" class="btn" style="background:#27ae60; color:white;">
+                        Export to Excel
+                    </a>
+                </div>
+
+                {% if tasks %}
+                    <table style="width:100%; border-collapse:collapse; background:white; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.12);">
+                        <thead>
+                            <tr style="background:#667eea; color:white;">
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Task Name</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Assigned To</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Department</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Status</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Progress</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Due Date</th>
+                                <th style="padding:18px 20px; text-align:left; font-weight:600;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:18px 20px;"><strong>{{ task.task_name }}</strong></td>
+                                <td style="padding:18px 20px;">{{ task.employee.firstname }} {{ task.employee.lastname }}</td>
+                                <td style="padding:18px 20px;">{{ task.employee.department.name|default:"—" }}</td>
+                                <td style="padding:18px 20px;">
+                                    <span class="status-badge 
+                                        {% if task.status == 'Completed' %}status-completed
+                                        {% elif task.status == 'In Progress' %}status-inprogress
+                                        {% else %}status-pending{% endif %}">
+                                        {{ task.get_status_display|default:task.status }}
+                                    </span>
+                                </td>
+                                <td style="padding:18px 20px;">
+                                    <div style="width:120px; height:38px; background:#ecf0f1; border-radius:19px; overflow:hidden; position:relative; box-shadow:inset 0 2px 4px rgba(0,0,0,0.1);">
+                                        <div style="height:100%; width:{{ task.progress }}%; background:linear-gradient(90deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:0.85rem; transition:width 0.5s ease;">
+                                            {{ task.progress }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding:18px 20px;">{{ task.due_date|date:"d M Y" }}</td>
+                                <td style="padding:18px 20px;">
+                                    <a href="{% url 'employee:update_task' task.id %}" 
+                                       style="background:#3498db; color:white; padding:10px 18px; border-radius:8px; text-decoration:none; font-size:0.9rem; margin-right:8px;">
+                                        Edit
+                                    </a>
+                                    <a href="{% url 'employee:delete_task' task.id %}" 
+                                       onclick="return confirm('Delete this task permanently?')"
+                                       style="background:#e74c3c; color:white; padding:10px 18px; border-radius:8px; text-decoration:none; font-size:0.9rem;">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" style="text-align:center; padding:80px; color:#999; font-size:1.1rem;">
+                                    No tasks assigned yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    {% if tasks.has_other_pages %}
+                    <div style="text-align:center; margin-top:30px;">
+                        {% if tasks.has_previous %}
+                            <a href="?section=tasks&task_page={{ tasks.previous_page_number }}" 
+                               style="background:#667eea; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; margin:0 10px;">
+                                Previous
+                            </a>
+                        {% endif %}
+                        <span style="font-size:1.1rem; color:#555;">
+                            Page {{ tasks.number }} of {{ tasks.paginator.num_pages }}
+                        </span>
+                        {% if tasks.has_next %}
+                            <a href="?section=tasks&task_page={{ tasks.next_page_number }}" 
+                               style="background:#667eea; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; margin:0 10px;">
+                                Next
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <div style="text-align:center; padding:120px; background:white; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                        <p style="color:#999; font-size:1.6rem;">No tasks have been assigned yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- LEAVE REQUESTS SECTION — ADDED & FULLY WORKING -->
+            <div id="leaves-section" style="display:none;">
+                <h1>Leave Requests</h1>
+                <div class="bg-white rounded-3 shadow p-4">
+                    <table class="table table-hover">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Employee</th>
+                                <th>Leave Type</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Days</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                            <tr>
+                                <td><strong>{{ leave.employee.firstname }} {{ leave.employee.lastname }}</strong></td>
+                                <td>{{ leave.get_leave_type_display }}</td>
+                                <td>{{ leave.start_date|date:"d M Y" }}</td>
+                                <td>{{ leave.end_date|date:"d M Y" }}</td>
+                                <td>{{ leave.total_days }}</td>
+                                <td>{{ leave.reason|truncatechars:50 }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if leave.status == 'Approved' %}bg-success
+                                        {% elif leave.status == 'Rejected' %}bg-danger
+                                        {% else %}bg-warning{% endif %}">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if leave.status == 'Pending' %}
+                                        <a href="{% url 'employee:approve_leave' leave.id %}" class="btn btn-sm btn-success">Approve</a>
+                                        <a href="{% url 'employee:reject_leave' leave.id %}" class="btn btn-sm btn-danger">Reject</a>
+                                    {% else %}
+                                        <span class="text-muted">Processed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="8" class="text-center py-5 text-muted">No pending leave requests</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- MODERN DARK MODE SWITCH -->
+<div class="switch-container">
+    <span>Light</span>
+    <label class="switch">
+        <input type="checkbox" id="themeToggle" onclick="toggleTheme()">
+        <span class="slider"></span>
+    </label>
+    <span>Dark</span>
+</div>
+
+<script>
+function toggleTheme() {
+    const body = document.body;
+    const checkbox = document.getElementById('themeToggle');
+    
+    if (checkbox.checked) {
+        body.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Load saved theme
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.setAttribute('data-theme', 'dark');
+    document.getElementById('themeToggle').checked = true;
+}
+</script>
+
+    <script>
+        // Load correct section from URL -->
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section') || 'dashboard';
+            showSection(section);
+        });
+
+        function showSection(id) {
+            document.querySelectorAll('div[id$="-section"]').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            const target = document.getElementById(id + '-section');
+            if (target) target.style.display = 'block';
+        }
+
+        // FIXED: Now shows team members properly
+        function showTeam(managerId) {
+            document.querySelectorAll('.manager-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('mgr-' + managerId)?.classList.add('active');
+
+            fetch(`/get-team/?manager_id=${managerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('team-display');
+                    if (!data.employees || data.employees.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-5">
+                                <p class="text-muted fs-4">No team members found</p>
+                            </div>`;
+                        return;
+                    }
+
+                    let html = `
+                    <h3 class="text-center mb-4" style="color:#667eea; font-weight:700;">
+                        Team of ${data.manager_name}
+                    </h3>
+                    <div class="row g-4">`;
+
+                    data.employees.forEach(emp => {
+                        html += `
+                        <div class="col-lg-4 col-md-6">
+                            <div class="team-display-card">
+                                <h5>${emp.name}</h5>
+                                <p><strong>${emp.designation}</strong> • ${emp.department}</p>
+                                <div class="fb-form">
+                                    <form method="POST" action="{% url 'employee:give_feedback' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="employee_id" value="${emp.id}">
+                                        <textarea name="feedback" placeholder="Write feedback for ${emp.name}..." required></textarea>
+                                        <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+                                            <label>Rating:</label>
+                                            <select name="rating">
+                                                <option value="5">5 - Excellent</option>
+                                                <option value="4">4 - Good</option>
+                                                <option value="3">3 - Average</option>
+                                                <option value="2">2 - Needs Improvement</option>
+                                                <option value="1">1 - Poor</option>
+                                            </select>
+                                            <button type="submit" style="background:linear-gradient(45deg,#667eea,#764ba2);color:white;border:none;padding:10px 20px;border-radius:50px;">
+                                                Send Feedback
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                    container.innerHTML = `<p class="text-center text-danger">Failed to load team</p>`;
+                });
+        }
+
+        // Search in Employees
+        document.getElementById('employeeSearch')?.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('#employees-section tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

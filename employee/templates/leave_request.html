@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Leave</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 400 15px 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        .header p {
+            margin-top: 8px;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .body {
+            padding: 30px;
+        }
+        .leave-balance {
+            background: #e8f4fc;
+            border: 1px solid #bee5eb solid;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
+            color: #0c5460;
+        }
+        .leave-balance strong {
+            color: #1a2533;
+        }
+        label {
+            display: block;
+            margin: 16px 0 6px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .messages {
+            margin-bottom: 20px;
+        }
+        .msg {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px 0;
+            font-weight: 500;
+        }
+        .msg.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 576px) {
+            .card { margin: 10px; }
+            .header, .body { padding: 20px; }
+            .header h2 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>Apply for Leave</h2>
+        <p>Welcome, {{ request.user.get_full_name|default:request.user.username }}</p>
+    </div>
+
+    <div class="body">
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Leave Balance Info -->
+        <div class="leave-balance">
+            Leave Balance {{ today|date:"Y" }}:<br>
+            <strong>Casual Leave:</strong> {{ remaining_casual_leaves }} remaining out of 12 &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>Duty Leave:</strong> {{ remaining_duty_leaves }} remaining out of 10
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label for="start_date">Start Date</label>
+            <input type="date"
+                   name="start_date"
+                   id="start_date"
+                   required
+                   min="{{ today|date:'Y-m-d' }}">
+
+            <label for="end_date">End Date</label>
+            <input type="date"
+                   name="end_date"
+                   id="end_date"
+                   required
+                   min="{{ today|date:'Y-m-d' }}">
+
+            <label for="leave_type">Leave Type</label>
+            <select name="leave_type" id="leave_type" required>
+                <option value="" disabled selected>Choose leave type</option>
+                <option value="Casual">Casual Leave ({{ remaining_casual_leaves }} left)</option>
+                <option value="Duty">Duty Leave ({{ remaining_duty_leaves }} left)</option>
+            </select>
+
+            <label for="reason">Reason for Leave</label>
+            <textarea name="reason" id="reason" placeholder="Briefly explain the reason..." required></textarea>
+
+            <button type="submit">Submit Leave Request</button>
+        </form>
+
+        <a href="{% url 'employee:employee_dashboard' %}" class="back-link">Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

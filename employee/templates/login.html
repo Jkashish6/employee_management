@@ -1,0 +1,244 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS • Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- THIS SCRIPT FORCES A BRAND NEW SESSION EVERY TIME /login IS OPENED -->
+     <script>
+        document.cookie = "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    </script>
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary: #5a67d8;
+            --primary-dark: #4c51bf;
+            --success: #48bb78;
+            --danger: #f56565;
+            --gray-100: #f7fafc;
+            --gray-800: #2d3748;
+            --shadow: 0 20px 40px rgba(90, 103, 216, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 40px 30px 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo svg {
+            width: 44px;
+            height: 44px;
+            color: white;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .login-body {
+            padding: 40px 35px 45px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(90, 103, 216, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .msg {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 12px;
+            animation: slideDown 0.4s ease;
+        }
+
+        .msg.success { background: #c6f6d5; color: #22543d; }
+        .msg.error   { background: #fed7d7; color: #742a2a; }
+        .msg.info    { background: #bee3f8; color: #1a365d; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+            .login-card { margin: 10px; }
+            .login-header, .login-body { padding: 30px 25px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="8"/>
+                <path d="M30 50 L50 70 L70 50" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="50" cy="40" r="8" fill="currentColor"/>
+            </svg>
+        </div>
+        <h2>HRMS Portal</h2>
+        <p>Employee Management System</p>
+    </div>
+
+    <!-- Body -->
+    <div class="login-body">
+
+        <!-- Django Messages (Success / Error / Info) -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="msg {{ message.tags|default:'info' }}">
+                        {{ message }}
+                        {% if message.tags == 'success' and 'Logged in at' in message %}
+                            <br><small>Enjoy your day!</small>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    name="username" 
+                    id="username"
+                    placeholder="john.doe" 
+                    required 
+                    autofocus 
+                    autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    name="password" 
+                    id="password"
+                    placeholder="••••••••" 
+                    required 
+                    autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="login-btn">
+                Sign In
+            </button>
+        </form>
+
+        <div class="footer-text">
+            Use your credentials • HR, Managers & Employees
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

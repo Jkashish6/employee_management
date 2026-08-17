@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Designations</title>
+    <style>
+        /* Embedded CSS for designations.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 80vw;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #1a2533;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .designation-list {
+            list-style: none;
+        }
+
+        .designation-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .designation-list li a {
+            color: #007bff;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        .designation-list li a:hover {
+            text-decoration: underline;
+        }
+
+        .messages {
+            margin-top: 10px;
+        }
+        .messages .success {
+            color: #28a745;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .messages .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 85vw;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                width: 90vw;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .designation-list li {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .designation-list li a {
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Manage Designations</h2>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <ul class="designation-list">
+            {% for designation in designations %}
+                <li>
+                    {{ designation.designation_name }} ({{ designation.base_salary }})
+                    <div>
+                        <a href="{% url 'edit_designation' designation.id %}">Edit</a> |
+                        <a href="{% url 'delete_designation' designation.id %}">Delete</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report - {{ employee.firstname }} {{ employee.lastname }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="form-wrapper">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Attendance Report - {{ employee.firstname }} {{ employee.lastname }}</h2>
+            </div>
+
+            <div class="form-body">
+                <div class="info-card" style="background:#f8f9fa;padding:25px;border-radius:16px;margin-bottom:40px;">
+                    <strong>Employee ID:</strong> {{ employee.id }}<br>
+                    <strong>Designation:</strong> {{ employee.designation.designation_name|default:"N/A" }}<br>
+                    <strong>Email:</strong> {{ employee.email }}
+                </div>
+
+                <!-- Tasks Table -->
+                <h3 style="color:#2c3e50;margin-bottom:20px;">Assigned Tasks</h3>
+                {% if tasks %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <th>Due Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td><strong>{{ task.task_name|default:"Untitled" }}</strong></td>
+                            <td>{{ task.status|default:"Pending" }}</td>
+                            <td>{{ task.progress|default:0 }}%</td>
+                            <td>{{ task.due_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if task.id %}
+                                    <a href="{% url 'employee:update_task' task.id %}" class="action-btn edit-btn">Update</a>
+                                {% else %}
+                                    <span style="color:#999;">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center;color:#999;padding:20px;">No tasks assigned.</p>
+                {% endif %}
+
+                <!-- Attendance Table -->
+                <h3 style="color:#2c3e50;margin:40px 0 20px;">Recent Attendance (Last 10 Days)</h3>
+                {% if attendances %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Hours</th>
+                            <th>First Login</th>
+                            <th>Last Logout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendances %}
+                        <tr>
+                            <td>{{ att.date|date:"d M Y" }}</td>
+                            <td>{{ att.work_status }}</td>
+                            <td>{{ att.hours_worked|floatformat:1|default:"—" }}</td>
+                            <td>{{ att.first_login|time:"H:i"|default:"—" }}</td>
+                            <td>{{ att.last_logout|time:"H:i"|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center;color:#999;padding:20px;">No attendance records.</p>
+                {% endif %}
+
+                <div style="text-align:center;margin-top:40px;">
+                    <a href="{% url 'employee:admin_dashboard' %}" class="form-btn" style="display:inline-block;width:auto;padding:18px 50px;">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

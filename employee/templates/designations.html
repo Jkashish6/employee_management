@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success - EMS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .success-container {
+            background-color: #ffffff;
+            padding: 50px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+        }
+        .success-icon {
+            font-size: 4.5rem;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #28a745;
+            margin: 0 0 15px 0;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        p {
+            color: #333;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background-color: #4361ee;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background-color: #3651d4;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-left: 15px;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="success-container">
+
+        <!-- Only show success if user is HR (security) -->
+        {% if user.is_authenticated and user.is_hr %}
+
+            <div class="success-icon">
+                Checkmark
+            </div>
+            <h2>Success!</h2>
+            <p><strong>{{ message|default:"Designation has been saved successfully." }}</strong></p>
+            <p>The designation is now available for assigning to employees.</p>
+
+            <div style="margin-top: 30px;">
+                <a href="{% url 'employee:admin_dashboard' %}" class="btn">
+                    Back to Dashboard
+                </a>
+                <a href="{% url 'employee:add_designation' %}" class="btn btn-secondary">
+                    Add Another Designation
+                </a>
+            </div>
+
+        {% else %}
+
+            <!-- If someone tries to access directly without permission -->
+            <h2 style="color:#dc3545;">Access Denied</h2>
+            <p>You do not have permission to view this page.</p>
+            <a href="{% url 'employee:admin_dashboard' %}" class="btn">
+                Go to Dashboard
+            </a>
+
+        {% endif %}
+
+    </div>
+</body>
+</html>
